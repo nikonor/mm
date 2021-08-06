@@ -10,9 +10,9 @@ import (
 	"time"
 )
 
-// NewMongoID - генерация нового MongoID
-func NewMongoID() string {
-	return NewObjectIDFromTimestamp(time.Now()).Hex()
+// newMongoID - генерация нового MongoID
+func newMongoID() string {
+	return newObjectIDFromTimestamp(time.Now()).hex()
 }
 
 var processUnique = processUniqueBytes()
@@ -36,7 +36,7 @@ func readRandomUint32() uint32 {
 	return (uint32(b[0]) << 0) | (uint32(b[1]) << 8) | (uint32(b[2]) << 16) | (uint32(b[3]) << 24)
 }
 
-func NewObjectIDFromTimestamp(timestamp time.Time) ObjectID {
+func newObjectIDFromTimestamp(timestamp time.Time) ObjectID {
 	var b [12]byte
 
 	binary.BigEndian.PutUint32(b[0:4], uint32(timestamp.Unix()))
@@ -46,12 +46,12 @@ func NewObjectIDFromTimestamp(timestamp time.Time) ObjectID {
 	return b
 }
 
-func (id ObjectID) Hex() string {
+func (id ObjectID) hex() string {
 	return hex.EncodeToString(id[:])
 }
 
-// Timestamp extracts the time part of the ObjectId.
-func (id ObjectID) Timestamp() time.Time {
+// timestamp extracts the time part of the ObjectId.
+func (id ObjectID) timestamp() time.Time {
 	unixSecs := binary.BigEndian.Uint32(id[0:4])
 	return time.Unix(int64(unixSecs), 0).UTC()
 }

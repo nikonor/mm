@@ -200,7 +200,7 @@ func fillVars(m *Mock) []byte {
 	bMONGOID := []byte(MONGOID)
 	for bytes.Contains(ret, bMONGOID) {
 		nl.Lock()
-		ret = bytes.Replace(ret, bMONGOID, []byte(NewMongoID()), 1)
+		ret = bytes.Replace(ret, bMONGOID, []byte(newMongoID()), 1)
 		*nextFlag++
 		nl.Unlock()
 	}
@@ -208,7 +208,7 @@ func fillVars(m *Mock) []byte {
 	bSameMONGOID := []byte(SameMONGOID)
 	if bytes.Contains(ret, bSameMONGOID) {
 		nl.Lock()
-		ret = bytes.ReplaceAll(ret, bSameMONGOID, []byte(NewMongoID()))
+		ret = bytes.ReplaceAll(ret, bSameMONGOID, []byte(newMongoID()))
 		*nextFlag++
 		nl.Unlock()
 	}
