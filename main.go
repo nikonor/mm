@@ -28,8 +28,6 @@ const (
 	SameUUID    = "%uuid4%"
 	INT         = "%increment%"
 	SameINT     = "%int%"
-	NEXT        = "%increment%"
-	SameNEXT    = "%%samenext%%"
 	MONGOID     = "%v_mongoid%"
 	SameMONGOID = "%mongoid%"
 	TIME        = "%time%"
@@ -183,21 +181,21 @@ func fillVars(m *Mock) []byte {
 		ret = bytes.ReplaceAll(ret, bSameINT, []byte(strconv.FormatInt(int64(r), 10)))
 	}
 
-	bNEXT := []byte(NEXT)
-	for bytes.Contains(ret, bNEXT) {
-		nl.Lock()
-		ret = bytes.Replace(ret, bNEXT, []byte(strconv.FormatInt(int64(*nextFlag), 10)), 1)
-		*nextFlag++
-		nl.Unlock()
-	}
-
-	bSameNEXT := []byte(SameNEXT)
-	if bytes.Contains(ret, bSameNEXT) {
-		nl.Lock()
-		ret = bytes.ReplaceAll(ret, bSameNEXT, []byte(strconv.FormatInt(int64(*nextFlag), 10)))
-		*nextFlag++
-		nl.Unlock()
-	}
+	// bNEXT := []byte(NEXT)
+	// for bytes.Contains(ret, bNEXT) {
+	// 	nl.Lock()
+	// 	ret = bytes.Replace(ret, bNEXT, []byte(strconv.FormatInt(int64(*nextFlag), 10)), 1)
+	// 	*nextFlag++
+	// 	nl.Unlock()
+	// }
+	//
+	// bSameNEXT := []byte(SameNEXT)
+	// if bytes.Contains(ret, bSameNEXT) {
+	// 	nl.Lock()
+	// 	ret = bytes.ReplaceAll(ret, bSameNEXT, []byte(strconv.FormatInt(int64(*nextFlag), 10)))
+	// 	*nextFlag++
+	// 	nl.Unlock()
+	// }
 
 	bMONGOID := []byte(MONGOID)
 	for bytes.Contains(ret, bMONGOID) {
