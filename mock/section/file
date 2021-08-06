@@ -1,0 +1,21 @@
+Content-type: application/json
+
+{
+	"Description":"Вызов /section/file",
+	"One": "один",
+	"Two": 2,
+	"UUID1": "%v_uuid4%",
+	"UUID2": "%v_uuid4%",
+	"SameUUID1": "%uuid4%",
+	"SameUUID2": "%uuid4%",
+	"Int": %increment%,
+	"Int2": %increment%,
+	"SameInt1": %int%,
+	"SameInt2": %int%,
+  	"mongoID1": "%v_mongoid%",
+  	"mongoID2": "%v_mongoid%",
+  	"SameMongoID1": "%mongoid%",
+  	"SameMongoID2": "%mongoid%",
+	"Time": "%time%",
+	"Date": "%date%"
+}

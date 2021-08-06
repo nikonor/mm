@@ -1,0 +1,17 @@
+X-header-one: one
+X-header-two: 2
+
+{
+	"Description":"Вызов /ok",
+  	"Ok": true,
+  	"n1": %increment%,
+  	"m1": %%samenext%%,
+  	"n2": %increment%,
+  	"n3": %increment%,
+  	"m2": %%samenext%%,
+  	"mID1": "%v_mongoid%",
+  	"mID2": "%v_mongoid%",
+  	"mID3": "%mongoid%",
+  	"mID4": "%mongoid%",
+
+}
