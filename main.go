@@ -208,8 +208,7 @@ func fill(m *Mock, body []byte) {
 	m.Headers = make(map[string]string)
 	if len(two) > 0 {
 		for _, s := range one {
-			// ss := strings.SplitNSplitN(s, ": ", 2)
-			ss := partSplitRE.Split(s, 2)
+			ss := splitH(s)
 			if len(ss) == 2 {
 				m.Headers[ss[0]] = ss[1]
 			}
@@ -220,6 +219,10 @@ func fill(m *Mock, body []byte) {
 		m.Body = []byte(strings.Join(one, "\n"))
 	}
 
+}
+
+func splitH(s string) []string {
+	return partSplitRE.Split(s, 2)
 }
 
 func fillVars(m *Mock) []byte {
