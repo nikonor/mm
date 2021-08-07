@@ -17,15 +17,21 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	NotFound = "404"
+)
+
+type Macro struct {
+	Macro      []byte
+	IsVariadic bool
+	F          func() []byte
+}
+
 type Mock struct {
 	Code    int
 	Headers map[string]string
 	Body    []byte
 }
-
-const (
-	NotFound = "404"
-)
 
 var (
 	mock               map[string]*Mock
@@ -37,10 +43,7 @@ var (
 	partSplitRE        *regexp.Regexp
 )
 
-type Macro struct {
-	Macro      []byte
-	IsVariadic bool
-	F          func() []byte
+type H struct {
 }
 
 func uuidV4() []byte     { return []byte(uuid.New().String()) }
@@ -140,9 +143,6 @@ func main() {
 	if err := http.ListenAndServe(":"+strconv.Itoa(*portFlag), handler); err != nil {
 		fmt.Fprint(os.Stderr, err.Error())
 	}
-}
-
-type H struct {
 }
 
 func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
