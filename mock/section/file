@@ -1,4 +1,5 @@
 Content-type: application/json
+X-test-header: abc
 
 {
 	"Description":"Вызов /section/file",
@@ -12,6 +13,10 @@ Content-type: application/json
 	"Int2": %increment%,
 	"SameInt1": %int%,
 	"SameInt2": %int%,
+	"RndInt1": %v_rnd_int%
+	"RndInt2": %v_rnd_int%
+	"SomeRndInt1": %rnd_int%
+	"SomeRndInt2": %rnd_int%
   	"mongoID1": "%v_mongoid%",
   	"mongoID2": "%v_mongoid%",
   	"SameMongoID1": "%mongoid%",

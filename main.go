@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -23,15 +24,7 @@ type Mock struct {
 }
 
 const (
-	NotFound    = "404"
-	UUID        = "%v_uuid4%"
-	SameUUID    = "%uuid4%"
-	INT         = "%increment%"
-	SameINT     = "%int%"
-	MONGOID     = "%v_mongoid%"
-	SameMONGOID = "%mongoid%"
-	TIME        = "%time%"
-	DATE        = "%date%"
+	NotFound = "404"
 )
 
 var (
@@ -40,11 +33,87 @@ var (
 	portFlag, nextFlag, nn *int
 	l                      sync.RWMutex
 	nl                     sync.Mutex
+	macros                 []Macro
+	partSplitRE            *regexp.Regexp
 )
 
-func main() {
+type Macro struct {
+	Macro      []byte
+	IsVariadic bool
+	F          func() []byte
+}
 
+func uuidv4() []byte     { return []byte(uuid.New().String()) }
+func getRndInt() []byte  { return []byte(strconv.FormatInt(int64(rand.Int31()), 10)) }
+func getMongoId() []byte { return []byte(newMongoID()) }
+func getNextInt() []byte {
+	nl.Lock()
+	defer nl.Unlock()
+	ret := []byte(strconv.FormatInt(int64(*nextFlag), 10))
+	*nextFlag++
+	return ret
+}
+func getTime() []byte { return []byte(time.Now().Format("15:04:05")) }
+func getDate() []byte { return []byte(time.Now().Format("2006-01-02")) }
+
+func init() {
 	rand.Seed(time.Now().UnixNano())
+
+	partSplitRE = regexp.MustCompile(`:\s*`)
+
+	macros = append(macros, Macro{
+		Macro:      []byte("%v_uuid4%"),
+		IsVariadic: true,
+		F:          uuidv4,
+	})
+	macros = append(macros, Macro{
+		Macro:      []byte("%uuid4%"),
+		IsVariadic: false,
+		F:          uuidv4,
+	})
+	macros = append(macros, Macro{
+		Macro:      []byte("%increment%"),
+		IsVariadic: true,
+		F:          getNextInt,
+	})
+	macros = append(macros, Macro{
+		Macro:      []byte("%int%"),
+		IsVariadic: false,
+		F:          getNextInt,
+	})
+	macros = append(macros, Macro{
+		Macro:      []byte("%rnd_int%"),
+		IsVariadic: false,
+		F:          getRndInt,
+	})
+	macros = append(macros, Macro{
+		Macro:      []byte("%v_rnd_int%"),
+		IsVariadic: true,
+		F:          getRndInt,
+	})
+	macros = append(macros, Macro{
+		Macro:      []byte("%mongoid%"),
+		IsVariadic: false,
+		F:          getMongoId,
+	})
+	macros = append(macros, Macro{
+		Macro:      []byte("%v_mongoid%"),
+		IsVariadic: true,
+		F:          getMongoId,
+	})
+	macros = append(macros, Macro{
+		Macro:      []byte("%time%"),
+		IsVariadic: true,
+		F:          getTime,
+	})
+	macros = append(macros, Macro{
+		Macro:      []byte("%date%"),
+		IsVariadic: true,
+		F:          getDate,
+	})
+}
+
+func main() {
 
 	flg := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 
@@ -139,7 +208,8 @@ func fill(m *Mock, body []byte) {
 	m.Headers = make(map[string]string)
 	if len(two) > 0 {
 		for _, s := range one {
-			ss := strings.SplitN(s, ": ", 2)
+			// ss := strings.SplitNSplitN(s, ": ", 2)
+			ss := partSplitRE.Split(s, 2)
 			if len(ss) == 2 {
 				m.Headers[ss[0]] = ss[1]
 			}
@@ -155,80 +225,16 @@ func fill(m *Mock, body []byte) {
 func fillVars(m *Mock) []byte {
 	ret := m.Body
 
-	now := time.Now()
-
-	bUUID := []byte(UUID)
-	for bytes.Contains(ret, bUUID) {
-		ret = bytes.Replace(ret, bUUID, []byte(uuid.New().String()), 1)
-	}
-
-	bSameUUID := []byte(SameUUID)
-	if bytes.Contains(ret, bSameUUID) {
-		ret = bytes.ReplaceAll(ret, bSameUUID, []byte(uuid.New().String()))
-	}
-
-	bINT := []byte(INT)
-	for bytes.Contains(ret, bINT) {
-		r := rand.Int31()
-		fmt.Printf("r=%d\n", r)
-		ret = bytes.Replace(ret, bINT, []byte(strconv.FormatInt(int64(r), 10)), 1)
-	}
-
-	bSameINT := []byte(SameINT)
-	if bytes.Contains(ret, bSameINT) {
-		r := rand.Int31()
-		fmt.Printf("r=%d\n", r)
-		ret = bytes.ReplaceAll(ret, bSameINT, []byte(strconv.FormatInt(int64(r), 10)))
-	}
-
-	// bNEXT := []byte(NEXT)
-	// for bytes.Contains(ret, bNEXT) {
-	// 	nl.Lock()
-	// 	ret = bytes.Replace(ret, bNEXT, []byte(strconv.FormatInt(int64(*nextFlag), 10)), 1)
-	// 	*nextFlag++
-	// 	nl.Unlock()
-	// }
-	//
-	// bSameNEXT := []byte(SameNEXT)
-	// if bytes.Contains(ret, bSameNEXT) {
-	// 	nl.Lock()
-	// 	ret = bytes.ReplaceAll(ret, bSameNEXT, []byte(strconv.FormatInt(int64(*nextFlag), 10)))
-	// 	*nextFlag++
-	// 	nl.Unlock()
-	// }
-
-	bMONGOID := []byte(MONGOID)
-	for bytes.Contains(ret, bMONGOID) {
-		nl.Lock()
-		ret = bytes.Replace(ret, bMONGOID, []byte(newMongoID()), 1)
-		*nextFlag++
-		nl.Unlock()
-	}
-
-	bSameMONGOID := []byte(SameMONGOID)
-	if bytes.Contains(ret, bSameMONGOID) {
-		nl.Lock()
-		ret = bytes.ReplaceAll(ret, bSameMONGOID, []byte(newMongoID()))
-		*nextFlag++
-		nl.Unlock()
-	}
-
-	// 2006-01-02T15:04:05Z07:00
-
-	bTIME := []byte(TIME)
-	if bytes.Contains(ret, bTIME) {
-		nl.Lock()
-		ret = bytes.ReplaceAll(ret, bTIME, []byte(now.Format("15:04:05")))
-		*nextFlag++
-		nl.Unlock()
-	}
-
-	bDATE := []byte(DATE)
-	if bytes.Contains(ret, bDATE) {
-		nl.Lock()
-		ret = bytes.ReplaceAll(ret, bDATE, []byte(now.Format("2006-01-02")))
-		*nextFlag++
-		nl.Unlock()
+	for _, macro := range macros {
+		if bytes.Contains(ret, macro.Macro) {
+			if macro.IsVariadic {
+				for bytes.Contains(ret, macro.Macro) {
+					ret = bytes.Replace(ret, macro.Macro, macro.F(), 1)
+				}
+			} else {
+				ret = bytes.ReplaceAll(ret, macro.Macro, macro.F())
+			}
+		}
 	}
 
 	return ret
