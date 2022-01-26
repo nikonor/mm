@@ -224,7 +224,15 @@ func fill(m *Mock, body []byte) {
 		for _, s := range one {
 			ss := splitH(s)
 			if len(ss) == 2 {
-				m.Headers[ss[0]] = ss[1]
+				if strings.EqualFold(ss[0], "Status-Code") {
+					if code, err := strconv.Atoi(strings.TrimSpace(ss[1])); err != nil {
+						fmt.Fprint(os.Stderr, "неверный формат Status-Code:"+s)
+					} else {
+						m.Code = code
+					}
+				} else {
+					m.Headers[ss[0]] = ss[1]
+				}
 			}
 		}
 

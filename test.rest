@@ -3,5 +3,7 @@ POST http://localhost:9999/404
 ###
 POST http://localhost:9999/ok
 ###
+POST http://localhost:9999/fail
+###
 POST http://localhost:9999/section/file
 ###

@@ -1,0 +1,18 @@
+X-header-one: one
+statuS-Code: 202
+X-header-two: 2
+
+{
+	"Description":"Вызов /ok",
+  	"Ok": true,
+  	"n1": %increment%,
+  	"n2": %increment%,
+  	"n3": %increment%,
+  	"m1": %int%,
+  	"m2": %int%,
+  	"mID1": "%v_mongoid%",
+  	"mID2": "%v_mongoid%",
+  	"mID3": "%mongoid%",
+  	"mID4": "%mongoid%",
+
+}
