@@ -152,29 +152,31 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	fmt.Println(lp + "::" + req.RequestURI + "::call")
 
+	uri := strings.TrimRight(req.RequestURI, "/")
+
 	l.RLock()
-	m, ok := mock[req.RequestURI]
+	m, ok := mock[uri]
 	l.RUnlock()
 
 	if !ok {
-		fmt.Println(lp + "::" + req.RequestURI + "::mock not found, try get file")
-		m, err = makeMock(req.RequestURI)
+		fmt.Println(lp + "::" + uri + "::mock not found, try get file")
+		m, err = makeMock(uri)
 		if err != nil {
-			fmt.Println(lp + "::" + req.RequestURI + "::new mock was not create => 404")
+			fmt.Println(lp + "::" + uri + "::new mock was not create => 404")
 			l.RLock()
 			m = mock[NotFound]
 			l.RUnlock()
 		} else {
-			fmt.Println(lp + "::" + req.RequestURI + "::new mock was create")
+			fmt.Println(lp + "::" + uri + "::new mock was create")
 			l.Lock()
-			mock[req.RequestURI] = m
+			mock[uri] = m
 			l.Unlock()
 		}
 	}
 
 	if m.Headers != nil && len(m.Headers) > 0 {
 		for k, v := range m.Headers {
-			fmt.Println(lp + "::" + req.RequestURI + "::add header::" + k + "=>" + v)
+			fmt.Println(lp + "::" + uri + "::add header::" + k + "=>" + v)
 			resp.Header().Add(k, v)
 		}
 	}
@@ -185,12 +187,18 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			fmt.Fprint(os.Stderr, err.Error())
 		}
 		b = bytes.ReplaceAll(b, []byte("\n"), []byte("\\n"))
-		fmt.Println(lp + "::" + req.RequestURI + "::body::" + string(b))
+		fmt.Println(lp + "::" + uri + "::body::" + string(b))
 	}
 }
 
 func makeMock(uri string) (*Mock, error) {
 	ret := Mock{Code: 200}
+
+	if _, err := ioutil.ReadDir(*dirFlag + uri); err == nil {
+		partOfURI := strings.Split(uri, "/")
+		uri += "/." + partOfURI[len(partOfURI)-1]
+		fmt.Println("it's dir. New path will be " + uri)
+	}
 
 	body, err := ioutil.ReadFile(*dirFlag + uri)
 	if err != nil {

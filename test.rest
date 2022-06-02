@@ -7,3 +7,7 @@ POST http://localhost:9999/fail
 ###
 POST http://localhost:9999/section/file
 ###
+POST http://localhost:9999/section
+###
+POST http://localhost:9999/section/
+###
