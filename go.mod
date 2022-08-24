@@ -1,4 +1,4 @@
-module mm
+module github.com/nikonor/mm
 
 go 1.18
 
