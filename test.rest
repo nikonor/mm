@@ -11,3 +11,7 @@ POST http://localhost:9999/section
 ###
 POST http://localhost:9999/section/
 ###
+GET http://localhost:9999/ok?one=1&two=2
+###
+GET http://localhost:9999/ok/one/1/two/2
+###

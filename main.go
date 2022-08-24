@@ -40,7 +40,7 @@ var (
 	l                  sync.RWMutex
 	nl                 sync.Mutex
 	macros             []Macro
-	partSplitRE        *regexp.Regexp
+	partSplitRE, sep   *regexp.Regexp
 )
 
 type H struct {
@@ -63,6 +63,7 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 
 	partSplitRE = regexp.MustCompile(`:\s*`)
+	sep = regexp.MustCompile(`[/?]`)
 
 	macros = append(macros, Macro{
 		Macro:      []byte("%v_uuid4%"),
@@ -145,6 +146,10 @@ func main() {
 	}
 }
 
+// func getM(uri string) (*Mock, bool) {
+//
+// }
+
 func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	var err error
 
@@ -153,6 +158,10 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	fmt.Println(lp + "::" + req.RequestURI + "::call")
 
 	uri := strings.TrimRight(req.RequestURI, "/")
+	if req.Method == "GET" {
+		uu := strings.SplitN(uri, "?", 2)
+		uri = uu[0]
+	}
 
 	l.RLock()
 	m, ok := mock[uri]
