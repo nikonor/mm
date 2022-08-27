@@ -146,9 +146,23 @@ func main() {
 	}
 }
 
-// func getM(uri string) (*Mock, bool) {
-//
-// }
+func getM(uri string) (*Mock, bool) {
+	l.RLock()
+	defer l.RUnlock()
+	m, ok := mock[uri]
+
+	if !ok {
+		uu := strings.Split(uri, "/")
+		for i := len(uu) - 1; i > 1; i-- {
+			uri = strings.Join(uu[:i], "/")
+			if m, ok = mock[uri]; ok {
+				return m, ok
+			}
+		}
+	}
+
+	return m, ok
+}
 
 func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	var err error
@@ -163,9 +177,7 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		uri = uu[0]
 	}
 
-	l.RLock()
-	m, ok := mock[uri]
-	l.RUnlock()
+	m, ok := getM(uri)
 
 	if !ok {
 		fmt.Println(lp + "::" + uri + "::mock not found, try get file")
