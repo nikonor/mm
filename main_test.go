@@ -35,3 +35,29 @@ func Test_splitH(t *testing.T) {
 		})
 	}
 }
+
+func Test_getCases(t *testing.T) {
+	type args struct {
+		uri string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{
+			name: "",
+			args: args{
+				uri: "/one/two/3/four",
+			},
+			want: []string{"/one/two/3/four", "/one/two/3", "/one/two", "/one"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := getCases(tt.args.uri); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("getCases() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

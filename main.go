@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"os"
@@ -152,16 +151,26 @@ func getM(uri string) (*Mock, bool) {
 	m, ok := mock[uri]
 
 	if !ok {
-		uu := strings.Split(uri, "/")
-		for i := len(uu) - 1; i > 1; i-- {
-			uri = strings.Join(uu[:i], "/")
-			if m, ok = mock[uri]; ok {
+		for _, u := range getCases(uri) {
+			if m, ok = mock[u]; ok {
 				return m, ok
 			}
 		}
 	}
 
 	return m, ok
+}
+
+func getCases(uri string) []string {
+
+	var r []string
+	r = append(r, uri)
+	uu := strings.Split(uri, "/")
+	for i := len(uu) - 1; i > 1; i-- {
+		r = append(r, strings.Join(uu[:i], "/"))
+
+	}
+	return r
 }
 
 func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
@@ -213,22 +222,30 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 }
 
 func makeMock(uri string) (*Mock, error) {
+	var (
+		err  error
+		body []byte
+	)
 	ret := Mock{Code: 200}
 
-	if _, err := ioutil.ReadDir(*dirFlag + uri); err == nil {
-		partOfURI := strings.Split(uri, "/")
-		uri += "/." + partOfURI[len(partOfURI)-1]
-		fmt.Println("it's dir. New path will be " + uri)
+	for _, u := range getCases(uri) {
+		if _, err = os.ReadDir(*dirFlag + u); err == nil {
+			partOfURI := strings.Split(uri, "/")
+			u += "/." + partOfURI[len(partOfURI)-1]
+			fmt.Println("it's dir. New path will be " + u)
+		}
+
+		body, err = os.ReadFile(*dirFlag + u)
+		if err != nil {
+			continue
+		}
+
+		fill(&ret, body)
+
+		return &ret, nil
 	}
 
-	body, err := ioutil.ReadFile(*dirFlag + uri)
-	if err != nil {
-		return &ret, err
-	}
-
-	fill(&ret, body)
-
-	return &ret, nil
+	return nil, err
 }
 
 func fill(m *Mock, body []byte) {
