@@ -251,7 +251,9 @@ func makeMock(uri string) (*Mock, error) {
 func fill(m *Mock, body []byte) {
 	var (
 		one, two []string
+		twoBody  []byte
 		flag     bool
+		err      error
 	)
 	for _, s := range strings.Split(string(body), "\n") {
 		if !flag && len(s) == 0 {
@@ -266,24 +268,35 @@ func fill(m *Mock, body []byte) {
 	}
 
 	m.Headers = make(map[string]string)
-	if len(two) > 0 {
-		for _, s := range one {
-			ss := splitH(s)
-			if len(ss) == 2 {
-				if strings.EqualFold(ss[0], "Status-Code") {
-					if code, err := strconv.Atoi(strings.TrimSpace(ss[1])); err != nil {
-						fmt.Fprint(os.Stderr, "неверный формат Status-Code:"+s)
-					} else {
-						m.Code = code
-					}
+	for _, s := range one {
+		ss := splitH(s)
+		if len(ss) == 2 {
+			switch {
+			case strings.EqualFold(ss[0], "Status-Code"):
+				if code, err := strconv.Atoi(strings.TrimSpace(ss[1])); err != nil {
+					fmt.Fprint(os.Stderr, "неверный формат Status-Code:"+s)
 				} else {
-					m.Headers[ss[0]] = ss[1]
+					m.Code = code
 				}
+			case strings.EqualFold(ss[0], "include"):
+				twoBody, err = os.ReadFile(*dirFlag + "/" + ss[1])
+				if err != nil {
+					fmt.Fprint(os.Stderr, err.Error()+"filename="+*dirFlag+"/"+ss[1])
+					return
+				}
+
+			default:
+				m.Headers[ss[0]] = ss[1]
 			}
 		}
+	}
 
+	switch {
+	case len(twoBody) > 0:
+		m.Body = twoBody
+	case len(two) > 0:
 		m.Body = []byte(strings.Join(two, "\n"))
-	} else {
+	default:
 		m.Body = []byte(strings.Join(one, "\n"))
 	}
 
