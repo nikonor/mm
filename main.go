@@ -124,7 +124,7 @@ func main() {
 	dirFlag = flg.String("d", "./", "путь к каталогу с файлами")
 	portFlag = flg.Int("p", 8888, "порт, на котором запустится мок")
 	nextFlag = flg.Int("n", 1, "первое число для последовательности")
-	pidFlag = flg.String("pid", "./", "путь к pid-файлу")
+	pidFlag = flg.String("pid", "", "путь к pid-файлу")
 
 	if err := flg.Parse(os.Args[1:]); err != nil {
 		fmt.Fprint(os.Stderr, err.Error())
