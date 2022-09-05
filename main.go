@@ -34,7 +34,7 @@ type Mock struct {
 
 var (
 	mock               map[string]*Mock
-	dirFlag            *string
+	dirFlag, pidFlag   *string
 	portFlag, nextFlag *int
 	l                  sync.RWMutex
 	nl                 sync.Mutex
@@ -124,6 +124,7 @@ func main() {
 	dirFlag = flg.String("d", "./", "путь к каталогу с файлами")
 	portFlag = flg.Int("p", 8888, "порт, на котором запустится мок")
 	nextFlag = flg.Int("n", 1, "первое число для последовательности")
+	pidFlag = flg.String("pid", "./", "путь к pid-файлу")
 
 	if err := flg.Parse(os.Args[1:]); err != nil {
 		fmt.Fprint(os.Stderr, err.Error())
@@ -138,6 +139,27 @@ func main() {
 	}
 
 	println("dir=", *dirFlag, ", port=", *portFlag)
+	if pidFlag != nil && len(*pidFlag) > 0 {
+		println("pid-file=" + *pidFlag)
+		lockFile, err := os.Create(*pidFlag)
+		defer func() {
+			if err = lockFile.Close(); err != nil {
+				fmt.Fprint(os.Stderr, err.Error())
+			}
+			if err = os.Remove(*pidFlag); err != nil {
+				fmt.Fprint(os.Stderr, err.Error())
+			}
+		}()
+		if err != nil {
+			fmt.Fprint(os.Stderr, err.Error())
+		} else {
+			_, err = lockFile.WriteString(strconv.Itoa(os.Getpid()))
+			if err != nil {
+				fmt.Fprint(os.Stderr, err.Error())
+			}
+
+		}
+	}
 
 	handler := &H{}
 	if err := http.ListenAndServe(":"+strconv.Itoa(*portFlag), handler); err != nil {
