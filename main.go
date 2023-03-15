@@ -233,7 +233,7 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	HeaderHandlerDelay(m.Headers)
+	HeaderHandlerDelay(lp+"::"+uri, m.Headers)
 
 	resp.WriteHeader(m.Code)
 	if m.Body != nil {
@@ -359,13 +359,15 @@ func randString(n int) string {
 }
 
 // Header Handlers
-func HeaderHandlerDelay(headers map[string]string) {
-	delay, ok1 := headers["X-mm-delay"]
-	if ok1 {
-		delaySec, _ := strconv.Atoi(delay)
-		if delaySec > 0 {
-			dur := time.Duration(delaySec) * time.Second
-			time.Sleep(dur)
+func HeaderHandlerDelay(lp string, headers map[string]string) {
+	for k, v := range headers {
+		if strings.EqualFold(k, "X-mm-delay") {
+			delaySec, _ := strconv.Atoi(v)
+			if delaySec > 0 {
+				fmt.Println(lp+"::"+"delaySec=", delaySec)
+				dur := time.Duration(delaySec) * time.Second
+				time.Sleep(dur)
+			}
 		}
 	}
 }
