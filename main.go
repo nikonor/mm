@@ -232,6 +232,9 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			resp.Header().Add(k, v)
 		}
 	}
+
+	HeaderHandlerDelay(m.Headers)
+
 	resp.WriteHeader(m.Code)
 	if m.Body != nil {
 		b := fillVars(m)
@@ -353,4 +356,16 @@ func randString(n int) string {
 		b[i] = letterRunes[rand.Intn(len(letterRunes))]
 	}
 	return string(b)
+}
+
+// Header Handlers
+func HeaderHandlerDelay(headers map[string]string) {
+	delay, ok1 := headers["X-mm-delay"]
+	if ok1 {
+		delaySec, _ := strconv.Atoi(delay)
+		if delaySec > 0 {
+			dur := time.Duration(delaySec) * time.Second
+			time.Sleep(dur)
+		}
+	}
 }
