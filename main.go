@@ -367,6 +367,7 @@ func HeaderHandlerDelay(lp string, headers map[string]string) {
 				fmt.Println(lp+"::"+"delaySec=", delaySec)
 				dur := time.Duration(delaySec) * time.Second
 				time.Sleep(dur)
+				break
 			}
 		}
 	}
