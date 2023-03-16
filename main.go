@@ -27,9 +27,10 @@ type Macro struct {
 }
 
 type Mock struct {
-	Code    int
-	Headers map[string]string
-	Body    []byte
+	Code        int
+	Headers     map[string]string
+	Body        []byte
+	FileModTime time.Time
 }
 
 var (
@@ -210,6 +211,11 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	m, ok := getM(uri)
 
+	if ok && !mockCheck(m, uri) {
+		fmt.Println(lp + "::" + uri + "::recreate mock")
+		ok = false
+	}
+
 	if !ok {
 		fmt.Println(lp + "::" + uri + "::mock not found, try get file")
 		m, err = makeMock(uri)
@@ -246,6 +252,19 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// проверяем время изменения файла
+func mockCheck(m *Mock, uri string) bool {
+	for _, u := range getCases(uri) {
+		stat, err := os.Stat(*dirFlag + u)
+		if err != nil {
+			return false
+		}
+
+		return m.FileModTime.Equal(stat.ModTime())
+	}
+	return false
+}
+
 func makeMock(uri string) (*Mock, error) {
 	var (
 		err  error
@@ -264,6 +283,13 @@ func makeMock(uri string) (*Mock, error) {
 		if err != nil {
 			continue
 		}
+
+		stat, err := os.Stat(*dirFlag + u)
+		if err != nil {
+			continue
+		}
+
+		ret.FileModTime = stat.ModTime()
 
 		fill(&ret, body)
 
