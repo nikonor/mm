@@ -27,9 +27,10 @@ type Macro struct {
 }
 
 type Mock struct {
-	Code    int
-	Headers map[string]string
-	Body    []byte
+	Code        int
+	Headers     map[string]string
+	Body        []byte
+	FileModTime time.Time
 }
 
 var (
@@ -210,6 +211,11 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	m, ok := getM(uri)
 
+	if ok && !mockCheck(m, uri) {
+		fmt.Println(lp + "::" + uri + "::recreate mock")
+		ok = false
+	}
+
 	if !ok {
 		fmt.Println(lp + "::" + uri + "::mock not found, try get file")
 		m, err = makeMock(uri)
@@ -232,6 +238,9 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			resp.Header().Add(k, v)
 		}
 	}
+
+	HeaderHandlerDelay(lp+"::"+uri, m.Headers)
+
 	resp.WriteHeader(m.Code)
 	if m.Body != nil {
 		b := fillVars(m)
@@ -241,6 +250,19 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		b = bytes.ReplaceAll(b, []byte("\n"), []byte("\\n"))
 		fmt.Println(lp + "::" + uri + "::body::" + string(b))
 	}
+}
+
+// проверяем время изменения файла
+func mockCheck(m *Mock, uri string) bool {
+	for _, u := range getCases(uri) {
+		stat, err := os.Stat(*dirFlag + u)
+		if err != nil {
+			return false
+		}
+
+		return m.FileModTime.Equal(stat.ModTime())
+	}
+	return false
 }
 
 func makeMock(uri string) (*Mock, error) {
@@ -261,6 +283,13 @@ func makeMock(uri string) (*Mock, error) {
 		if err != nil {
 			continue
 		}
+
+		stat, err := os.Stat(*dirFlag + u)
+		if err != nil {
+			continue
+		}
+
+		ret.FileModTime = stat.ModTime()
 
 		fill(&ret, body)
 
@@ -353,4 +382,19 @@ func randString(n int) string {
 		b[i] = letterRunes[rand.Intn(len(letterRunes))]
 	}
 	return string(b)
+}
+
+// Header Handlers
+func HeaderHandlerDelay(lp string, headers map[string]string) {
+	for k, v := range headers {
+		if strings.EqualFold(k, "X-mm-delay") {
+			delaySec, _ := strconv.Atoi(v)
+			if delaySec > 0 {
+				fmt.Println(lp+"::"+"delaySec=", delaySec)
+				dur := time.Duration(delaySec) * time.Second
+				time.Sleep(dur)
+				break
+			}
+		}
+	}
 }

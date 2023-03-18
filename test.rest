@@ -17,3 +17,5 @@ GET http://localhost:9999/ok/one/1/two/2
 ###
 GET http://localhost:9999/file
 ###
+GET http://localhost:9999/delay
+###

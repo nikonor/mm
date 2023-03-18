@@ -1,0 +1,9 @@
+X-header-one: one
+X-header-two: 2
+X-mm-delay: 5
+
+{
+	"Description":"Вызов /ok",
+  	"Ok": true,
+  	"n1": %increment%,
+}
