@@ -1,25 +1,26 @@
-# mm
+This is a mini-mock.
 
-Это мини-мок. 
+I got bored every time I went to a project that one of my colleagues was sawing at, I asked him to set up our main mock. It's cool and can do a lot, but for positive cases, it would be easier to  have something that can be stored in text files and run from a com.strings. Simply put, a .rest file from Idea, but vice versa.
 
-Меня задолбало каждый раз при переходе к проекту, который пилил кто-то из коллег, просить у него настройки нашего основного мока. Он крутой и может многое, но для положительных кейсов было бы проще что=то, что можно хранить в текстовых файлах и запускать из ком.строки. Проще говоря .rest файл от Idea, но наоборот.
+So this utility was written.
 
-Так и была написала эта утилита.
+## 
 
-## Запуск
+## Launch
 
-```bash
-mm [-d <каталог с мок-файлам, по-умолчанию ./>]\
-    [-p <порт, по-умолчанию 9999>]\ 
-    [-n <начальное значение %increment%, по-умолчанию 1>]
+```
+mm [-d <directory with mock files, by default ./>]\
+[-p <port, default 9999>]\
+[-n <initial value %increment%, default 1>]
 ```
 
-## Как это работает?
+## 
 
-Идея простая: кладем по нужным путям нужные файлы и отдаем их при запросе. 
-Обратите внимание на файл section/.section. Если вам нужно иметь ссылки и /section, и /section/file, то для первой ссылки надо сделать файл section/.section
+## How does it work?
 
-Пример:
+The idea is simple: we put the necessary files in the right paths and give them back when requested. Pay attention to the section/.section file. If you need to have both /section and /section/file links, then make a section/.section file for the first link
+
+Example:
 
 ```
 ./mock
@@ -32,27 +33,32 @@ mm [-d <каталог с мок-файлам, по-умолчанию ./>]\
 1 directory, 4 files
 ```
 
-у нас есть два файла ответа и каталог. При таком расположении мы можем получить два успешных ответа:
+we have two response files and a directory. With this arrangement, we can get two successful responses:
+
 - /fail
 - /ok
 - /section/file
 - /section
 
-## Как устроен файл ответа?
+## 
 
-Устройство простое: первые строки, до пустой строки - заголовки.
+## How does the response file work?
 
-### Заголовки
+The device is simple: the first lines, before the empty line - headers.
 
-(2022-01-26) Если указать среди заголовков `Status-Code: <n>`, то он не пойдет в заголовки, а будет использован по назначению.
-(2022-08-27) В заголовке м. указать `include: <filepath>` и тогда в качестве тела будет отдан этот файл. Пример см. в ./mock/file
-(20230-03-16) Задержка в секундах `X-mm-delay: <n>` (спасибо [Teimur8](https://github.com/teimur8))
+### 
 
-### Тело 
+### Headlines
 
-После пустой строки - тело ответа.
+(2022-01-26) If you specify it among the headers `Status-Code: <n>`, it will not go to the headers, but will be used for its intended purpose.
+(2022-08-27) In the m header. specify `include: <filepath>`and then this file will be returned as the body. For an example, see . / mock/file
+(20230-03-16) Delay in seconds `X-mm-delay: <n>`(thanks to [Teimur8(https://github.com/teimur8))
 
-### Пример
+### Body
+
+After an empty line - the response body.
+
+### Example
 
 ```
 Status-Code: 202
@@ -67,18 +73,17 @@ X-mm-delay: 5
 }
 ```
 
-## Макросы
+## Macros
 
-В файле могут быть использованы макросы:
+Macros can be used in the file:
 
-- %v_uuid4% - новый uuidV4
-- %uuid4% - uuidV4 один на запрос (повторится столько раз, сколько будет указан макрос)
-- %increment% - увеличивающееся при каждом запросе число (начинается с числа, переданого в ключе -n) 
-- %int% - число (повторится столько раз, сколько будет указан макрос). Будет взято по порядку из той же последовательности, что и %increment% 
-- %v_mongoid% - новый mongoID 
-- %mongoid% - mongoID один на запрос (повторится столько раз, сколько будет указан макрос)
-- %time% - текущее время в формате ЧЧ:ММ:СС
-- %date% - дата в формате ГГГГ-ММ-ДД
-- %v_rnd_int% - случайное число
-- %rnd_int% - случайное число (повторится столько раз, сколько будет указан макрос)
-
+- %v_uuid4% - new UUIDv4
+- %uuid4% - UUIDv4 one per request (repeated as many times as the macro is specified)
+- %increment% - the number that increases with each request (starts with the number passed in the-n key)
+- %int% - a number (repeated as many times as the macro is specified). Will be taken in order from the same sequence as %increment%
+- %v_mongoid% - new mongoID
+- %mongoid% - mongoID one per request (repeated as many times as the macro is specified)
+- %time% - current time in HH format:MM:SS
+- %date% - date in the format YYYY-MM-DD
+- %v_rnd_int% - random number
+- %rnd_int% - random number (repeated as many times as the macro is specified)
