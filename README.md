@@ -52,7 +52,7 @@ The device is simple: the first lines, before the empty line - headers.
 
 - (2022-01-26) If you specify it among the headers `Status-Code: <n>`, it will not go to the headers, but will be used for its intended purpose.
 - (2022-08-27) In the m header. specify `include: <filepath>`and then this file will be returned as the body. For an example, see . / mock/file
-- (20230-03-16) Delay in seconds `X-mm-delay: <n>`(thanks to [Teimur8(https://github.com/teimur8))
+- (20230-03-16) Delay in seconds `X-mm-delay: <n>`(thanks to [Teimur8](https://github.com/teimur8))
 
 ### Body
 
