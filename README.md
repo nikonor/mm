@@ -9,9 +9,17 @@ So this utility was written.
 ## Launch
 
 ```
-mm [-d <directory with mock files, by default ./>]\
-[-p <port, default 9999>]\
-[-n <initial value %increment%, default 1>]
+Usage of mm:
+  -d string
+        path to mock files dir (default "./")
+  -n int
+        first number for sequence (default 1)
+  -p int
+        port (default 8888)
+  -pid string
+        path to pid-file
+  -t string
+        list of access tokens, separated by ,
 ```
 
 ## 

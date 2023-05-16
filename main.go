@@ -18,6 +18,7 @@ import (
 
 const (
 	NotFound = "404"
+	TokenKey = "X-Mm-Auth-Token"
 )
 
 type Macro struct {
@@ -34,13 +35,15 @@ type Mock struct {
 }
 
 var (
-	mock               map[string]*Mock
-	dirFlag, pidFlag   *string
-	portFlag, nextFlag *int
-	l                  sync.RWMutex
-	nl                 sync.Mutex
-	macros             []Macro
-	partSplitRE, sep   *regexp.Regexp
+	mock                         map[string]*Mock
+	dirFlag, pidFlag, tokensFlag *string
+	portFlag, nextFlag           *int
+	l                            sync.RWMutex
+	nl                           sync.Mutex
+	macros                       []Macro
+	partSplitRE, sep             *regexp.Regexp
+	tokens                       []string
+	needToken                    bool
 )
 
 type H struct {
@@ -122,10 +125,11 @@ func main() {
 	flg := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 
 	// Обработка флагов командной строки
-	dirFlag = flg.String("d", "./", "путь к каталогу с файлами")
-	portFlag = flg.Int("p", 8888, "порт, на котором запустится мок")
-	nextFlag = flg.Int("n", 1, "первое число для последовательности")
-	pidFlag = flg.String("pid", "", "путь к pid-файлу")
+	dirFlag = flg.String("d", "./", "path to mock files dir")
+	portFlag = flg.Int("p", 8888, "port")
+	nextFlag = flg.Int("n", 1, "first number for sequence")
+	pidFlag = flg.String("pid", "", "path to pid-file")
+	tokensFlag = flg.String("t", "", "list of access tokens, separated by ,")
 
 	if err := flg.Parse(os.Args[1:]); err != nil {
 		fmt.Fprint(os.Stderr, err.Error())
@@ -160,6 +164,10 @@ func main() {
 			}
 
 		}
+	}
+	if tokensFlag != nil && len(*tokensFlag) > 0 {
+		tokens = strings.Split(*tokensFlag, ",")
+		needToken = true
 	}
 
 	handler := &H{}
@@ -196,12 +204,37 @@ func getCases(uri string) []string {
 	return r
 }
 
+func isValidToken(t string) bool {
+	if len(t) == 0 {
+		return false
+	}
+	for _, tt := range tokens {
+		if t == tt {
+			return true
+		}
+	}
+	return false
+}
+
 func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	var err error
 
 	lp := randString(8)
 
 	fmt.Println(lp + "::" + req.RequestURI + "::call")
+
+	if needToken {
+		if !isValidToken(req.Header.Get(TokenKey)) {
+			l.RLock()
+			m := mock[NotFound]
+			l.RUnlock()
+			resp.WriteHeader(m.Code)
+			if _, err = resp.Write(m.Body); err != nil {
+				fmt.Fprint(os.Stderr, err.Error())
+			}
+			return
+		}
+	}
 
 	uri := strings.TrimRight(req.RequestURI, "/")
 	if req.Method == "GET" {

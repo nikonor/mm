@@ -1,21 +1,31 @@
 ###
-POST http://localhost:9999/404
+POST {{proto}}{{host}}:{{port}}/404
+X-Mm-Auth-Token: ABC
 ###
-POST http://localhost:9999/ok
+POST {{proto}}{{host}}:{{port}}/ok
+X-Mm-Auth-Token: QWE
 ###
-POST http://localhost:9999/fail
+POST {{proto}}{{host}}:{{port}}/fail
+X-Mm-Auth-Token: ABC
 ###
-POST http://localhost:9999/section/file
+POST {{proto}}{{host}}:{{port}}/section/file
+X-Mm-Auth-Token: ABC
 ###
-POST http://localhost:9999/section
+POST {{proto}}{{host}}:{{port}}/section
+X-Mm-Auth-Token: ABC
 ###
-POST http://localhost:9999/section/
+POST {{proto}}{{host}}:{{port}}/section/
+X-Mm-Auth-Token: ABC
 ###
-GET http://localhost:9999/ok?one=1&two=2
+GET {{proto}}{{host}}:{{port}}/ok?one=1&two=2
+X-Mm-Auth-Token: ABC
 ###
-GET http://localhost:9999/ok/one/1/two/2
+GET {{proto}}{{host}}:{{port}}/ok/one/1/two/2
+X-Mm-Auth-Token: ABC
 ###
-GET http://localhost:9999/file
+GET {{proto}}{{host}}:{{port}}/file
+X-Mm-Auth-Token: ABC
 ###
-GET http://localhost:9999/delay
+GET {{proto}}{{host}}:{{port}}/delay
+X-Mm-Auth-Token: ABC
 ###
