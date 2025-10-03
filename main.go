@@ -237,10 +237,8 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	uri := strings.TrimRight(req.RequestURI, "/")
-	if req.Method == "GET" {
-		uu := strings.SplitN(uri, "?", 2)
-		uri = uu[0]
-	}
+	uu := strings.SplitN(uri, "?", 2)
+	uri = uu[0]
 
 	m, ok := getM(uri)
 
