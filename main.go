@@ -19,8 +19,12 @@ import (
 )
 
 const (
-	NotFound = "404"
-	TokenKey = "X-Mm-Auth-Token"
+	NotFound   = "404"
+	TokenKey   = "X-Mm-Auth-Token"
+	ENVKeyPort = "MM_PORT"
+	ENVKeyDir  = "MM_DIR"
+	ENVKeyNext = "MM_NEXT"
+	ENVKeyPID  = "MM_PID"
 )
 
 type Macro struct {
@@ -137,6 +141,35 @@ func main() {
 	if err := flg.Parse(os.Args[1:]); err != nil {
 		fmt.Fprint(os.Stderr, err.Error())
 		return
+	}
+
+	if tmpEnvPort := os.Getenv(ENVKeyPort); len(tmpEnvPort) > 0 {
+		tmpPort, errEnv := strconv.Atoi(tmpEnvPort)
+		if errEnv != nil {
+			fmt.Fprint(os.Stderr, "wrong "+ENVKeyPort+" value")
+		} else {
+			portFlag = &tmpPort
+		}
+	}
+
+	if tmpEnvNext := os.Getenv(ENVKeyNext); len(tmpEnvNext) > 0 {
+		tmpNext, errEnv := strconv.Atoi(tmpEnvNext)
+		if errEnv != nil {
+			fmt.Fprint(os.Stderr, "wrong "+ENVKeyNext+" value")
+		} else {
+			nextFlag = &tmpNext
+		}
+	}
+
+	if tmpEnvDir := os.Getenv(ENVKeyDir); len(tmpEnvDir) > 0 {
+		dirFlag = &tmpEnvDir
+	}
+
+	if tmpEnvDir := os.Getenv(ENVKeyDir); len(tmpEnvDir) > 0 {
+		dirFlag = &tmpEnvDir
+	}
+	if tmpEnvPID := os.Getenv(ENVKeyPID); len(tmpEnvPID) > 0 {
+		pidFlag = &tmpEnvPID
 	}
 
 	mock = make(map[string]*Mock)

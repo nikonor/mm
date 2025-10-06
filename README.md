@@ -22,6 +22,15 @@ Usage of mm:
         list of access tokens, separated by ,
 ```
 
+### Environment
+
+You can set params in environment. **Environment variables has first priority**  
+
+- MM_PORT - env key for port
+- MM_DIR -  env key for dir
+- MM_NEXT - env key for first number for sequence
+- MM_PID -  env key for path to pid-file
+
 ## 
 
 ## How does it work?
