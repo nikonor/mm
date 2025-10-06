@@ -60,7 +60,13 @@ The device is simple: the first lines, before the empty line - headers.
 
 - (2022-01-26) If you specify it among the headers `Status-Code: <n>`, it will not go to the headers, but will be used for its intended purpose.
 - (2022-08-27) In the m header. specify `include: <filepath>`and then this file will be returned as the body. For an example, see . / mock/file
-- (20230-03-16) Delay in seconds `X-mm-delay: <n>`(thanks to [Teimur8](https://github.com/teimur8))
+- (2023-03-16) Delay in seconds `X-mm-delay: <n>`(thanks to [Teimur8](https://github.com/teimur8))
+- (2025-10-06) Add COND string in headers. 
+  - you can add string COND in mock-file (example `./mock/cond`)
+  - cond-string should like [https://github.com/nikonor/cond](https://github.com/nikonor/cond)
+  - variables are taken from the query string
+    - **IMPORTENT**: mm works with first parameter only (?one=1&two=2&one=3 => one==1 )
+  - mm answers 200-Ok only if COND will be true
 
 ### Body
 

@@ -1,3 +1,6 @@
-# github.com/google/uuid v1.3.0
+# github.com/google/uuid v1.6.0
 ## explicit
 github.com/google/uuid
+# github.com/nikonor/cond v1.0.3
+## explicit; go 1.17
+github.com/nikonor/cond

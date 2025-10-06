@@ -29,3 +29,31 @@ X-Mm-Auth-Token: ABC
 GET {{proto}}{{host}}:{{port}}/delay
 X-Mm-Auth-Token: ABC
 ###
+POST {{proto}}{{host}}:{{port}}/ok?one=1&two=2
+X-Mm-Auth-Token: ABC
+Content-Type: application/json
+
+{
+}
+### cond - yes
+POST {{proto}}{{host}}:{{port}}/cond?one=1&two=2
+X-Mm-Auth-Token: ABC
+Content-Type: application/json
+
+{
+}
+### cond - no
+POST {{proto}}{{host}}:{{port}}/cond?one=2&two=1
+X-Mm-Auth-Token: ABC
+Content-Type: application/json
+
+{
+}
+### cond - no#2
+POST {{proto}}{{host}}:{{port}}/cond
+X-Mm-Auth-Token: ABC
+Content-Type: application/json
+
+{
+}
+###
