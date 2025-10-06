@@ -1,2 +1,4 @@
-github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
-github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/nikonor/cond v1.0.3 h1:mcUZpdjb7cZy5edpHhpAeW7FMrwF17e6cd5aj2opqcs=
+github.com/nikonor/cond v1.0.3/go.mod h1:pRY0wPsVG2A2FR5dROmt7jw/yVRxt1n4HbATcO9+ua8=

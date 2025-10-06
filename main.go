@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/nikonor/cond"
 )
 
 const (
@@ -30,6 +32,7 @@ type Macro struct {
 type Mock struct {
 	Code        int
 	Headers     map[string]string
+	Cond        string
 	Body        []byte
 	FileModTime time.Time
 }
@@ -225,13 +228,10 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	if needToken {
 		if !isValidToken(req.Header.Get(TokenKey)) {
-			l.RLock()
-			m := mock[NotFound]
-			l.RUnlock()
-			resp.WriteHeader(m.Code)
-			if _, err = resp.Write(m.Body); err != nil {
+			if err = h.notFound(resp, err); err != nil {
 				fmt.Fprint(os.Stderr, err.Error())
 			}
+
 			return
 		}
 	}
@@ -239,6 +239,15 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	uri := strings.TrimRight(req.RequestURI, "/")
 	uu := strings.SplitN(uri, "?", 2)
 	uri = uu[0]
+	params := make(map[string]string)
+	if len(uu) == 2 {
+		uParams, err := url.ParseQuery(uu[1])
+		if err == nil {
+			for k, v := range uParams {
+				params[k] = v[0]
+			}
+		}
+	}
 
 	m, ok := getM(uri)
 
@@ -263,6 +272,21 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	if len(m.Cond) > 0 {
+		okCond, errCond := cond.OK(m.Cond, params)
+		if errCond != nil || !okCond {
+			if errCond != nil {
+				fmt.Fprint(os.Stderr, errCond.Error())
+			}
+
+			if errCond = h.notFound(resp, err); err != nil {
+				fmt.Fprint(os.Stderr, errCond.Error())
+			}
+
+			return
+		}
+	}
+
 	if m.Headers != nil && len(m.Headers) > 0 {
 		for k, v := range m.Headers {
 			fmt.Println(lp + "::" + uri + "::add header::" + k + "=>" + v)
@@ -281,6 +305,17 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		b = bytes.ReplaceAll(b, []byte("\n"), []byte("\\n"))
 		fmt.Println(lp + "::" + uri + "::body::" + string(b))
 	}
+}
+
+func (h *H) notFound(resp http.ResponseWriter, err error) error {
+	l.RLock()
+	m := mock[NotFound]
+	l.RUnlock()
+	resp.WriteHeader(m.Code)
+	if _, err = resp.Write(m.Body); err != nil {
+		fmt.Fprint(os.Stderr, err.Error())
+	}
+	return err
 }
 
 // проверяем время изменения файла
@@ -366,7 +401,8 @@ func fill(m *Mock, body []byte) {
 					fmt.Fprint(os.Stderr, err.Error()+"filename="+*dirFlag+"/"+ss[1])
 					return
 				}
-
+			case strings.EqualFold(ss[0], "cond"):
+				m.Cond = ss[1]
 			default:
 				m.Headers[ss[0]] = ss[1]
 			}
