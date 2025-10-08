@@ -1,0 +1,5 @@
+Content-type: application/json
+X-header-one: one=1
+IF: (eq $$idx$$ 1) => if_1
+IF: (eq $$idx$$ 2) => if_2
+IF: (eq $$idx$$ 22) => if_22

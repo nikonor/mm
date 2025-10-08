@@ -34,11 +34,28 @@ type Macro struct {
 }
 
 type Mock struct {
+	mu          sync.RWMutex
 	Code        int
 	Headers     map[string]string
 	Cond        string
-	Body        []byte
+	Body        [][]byte
+	IFs         map[string]int
 	FileModTime time.Time
+	count       int
+}
+
+func (m *Mock) addCount() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	m.count++
+}
+
+func (m *Mock) getModTime() time.Time {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	return m.FileModTime
 }
 
 var (
@@ -176,7 +193,7 @@ func main() {
 	mock[NotFound] = &Mock{
 		Code:    404,
 		Headers: nil,
-		Body:    nil,
+		Body:    [][]byte{[]byte("")},
 	}
 
 	println("dir=", *dirFlag, ", port=", *portFlag)
@@ -320,6 +337,25 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	println("----")
+
+	var (
+		b      []byte
+		fillOk bool
+	)
+
+	if len(m.Body) > 0 {
+		b, fillOk = fillVars(m, params)
+		if !fillOk {
+			if err = h.notFound(resp, err); err != nil {
+				fmt.Fprint(os.Stderr, err.Error())
+			}
+
+			return
+		}
+		fmt.Println(lp + "::" + uri + "::body::" + string(bytes.ReplaceAll(b, []byte("\n"), []byte("\\n"))))
+	}
+
 	if m.Headers != nil && len(m.Headers) > 0 {
 		for k, v := range m.Headers {
 			fmt.Println(lp + "::" + uri + "::add header::" + k + "=>" + v)
@@ -330,14 +366,14 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	HeaderHandlerDelay(lp+"::"+uri, m.Headers)
 
 	resp.WriteHeader(m.Code)
-	if m.Body != nil {
-		b := fillVars(m)
+
+	if len(b) > 0 {
 		if _, err = resp.Write(b); err != nil {
 			fmt.Fprint(os.Stderr, err.Error())
 		}
-		b = bytes.ReplaceAll(b, []byte("\n"), []byte("\\n"))
-		fmt.Println(lp + "::" + uri + "::body::" + string(b))
 	}
+
+	m.addCount()
 }
 
 func (h *H) notFound(resp http.ResponseWriter, err error) error {
@@ -345,7 +381,7 @@ func (h *H) notFound(resp http.ResponseWriter, err error) error {
 	m := mock[NotFound]
 	l.RUnlock()
 	resp.WriteHeader(m.Code)
-	if _, err = resp.Write(m.Body); err != nil {
+	if _, err = resp.Write(m.Body[0]); err != nil {
 		fmt.Fprint(os.Stderr, err.Error())
 	}
 	return err
@@ -359,7 +395,7 @@ func mockCheck(m *Mock, uri string) bool {
 			return false
 		}
 
-		return m.FileModTime.Equal(stat.ModTime())
+		return m.getModTime().Equal(stat.ModTime())
 	}
 	return false
 }
@@ -369,7 +405,11 @@ func makeMock(uri string) (*Mock, error) {
 		err  error
 		body []byte
 	)
-	ret := Mock{Code: 200}
+	ret := Mock{
+		Code: 200,
+		Body: make([][]byte, 0),
+		IFs:  make(map[string]int),
+	}
 
 	for _, u := range getCases(uri) {
 		if _, err = os.ReadDir(*dirFlag + u); err == nil {
@@ -402,9 +442,12 @@ func fill(m *Mock, body []byte) {
 	var (
 		one, two []string
 		twoBody  []byte
+		options  = make([][]byte, 0)
 		flag     bool
 		err      error
 	)
+	m.Body = make([][]byte, 0)
+
 	for _, s := range strings.Split(string(body), "\n") {
 		if !flag && len(s) == 0 {
 			flag = true
@@ -421,6 +464,7 @@ func fill(m *Mock, body []byte) {
 	for _, s := range one {
 		ss := splitH(s)
 		if len(ss) == 2 {
+			fileName := *dirFlag + "/" + ss[1]
 			switch {
 			case strings.EqualFold(ss[0], "Status-Code"):
 				if code, err := strconv.Atoi(strings.TrimSpace(ss[1])); err != nil {
@@ -429,13 +473,34 @@ func fill(m *Mock, body []byte) {
 					m.Code = code
 				}
 			case strings.EqualFold(ss[0], "include"):
-				twoBody, err = os.ReadFile(*dirFlag + "/" + ss[1])
+				twoBody, err = os.ReadFile(fileName)
 				if err != nil {
-					fmt.Fprint(os.Stderr, err.Error()+"filename="+*dirFlag+"/"+ss[1])
+					fmt.Fprint(os.Stderr, err.Error()+"filename="+fileName)
 					return
 				}
+			case strings.EqualFold(ss[0], "option"):
+				opt, errRF := os.ReadFile(fileName)
+				if errRF != nil {
+					fmt.Fprint(os.Stderr, errRF.Error()+"filename="+fileName)
+					return
+				}
+				options = append(options, opt)
 			case strings.EqualFold(ss[0], "cond"):
 				m.Cond = ss[1]
+			case strings.EqualFold(ss[0], "if"):
+				parts := strings.Split(ss[1], "=>")
+				if len(parts) != 2 {
+					fmt.Fprint(os.Stderr, "wrong format of IF")
+					return
+				}
+				fileName = *dirFlag + "/" + strings.TrimSpace(parts[1])
+				opt, errRF := os.ReadFile(fileName)
+				if errRF != nil {
+					fmt.Fprint(os.Stderr, errRF.Error()+"filename="+*dirFlag+"/"+parts[1])
+					return
+				}
+				options = append(options, opt)
+				m.IFs[strings.TrimSpace(parts[0])] = len(options) - 1
 			default:
 				m.Headers[ss[0]] = ss[1]
 			}
@@ -443,12 +508,14 @@ func fill(m *Mock, body []byte) {
 	}
 
 	switch {
+	case len(options) > 0:
+		m.Body = options
 	case len(twoBody) > 0:
-		m.Body = twoBody
+		m.Body = append(m.Body, twoBody)
 	case len(two) > 0:
-		m.Body = []byte(strings.Join(two, "\n"))
+		m.Body = append(m.Body, []byte(strings.Join(two, "\n")))
 	default:
-		m.Body = []byte(strings.Join(one, "\n"))
+		m.Body = append(m.Body, []byte(strings.Join(one, "\n")))
 	}
 
 }
@@ -457,8 +524,24 @@ func splitH(s string) []string {
 	return partSplitRE.Split(s, 2)
 }
 
-func fillVars(m *Mock) []byte {
-	ret := m.Body
+func fillVars(m *Mock, params map[string]string) ([]byte, bool) {
+	idx := 0
+	ll := len(m.Body)
+	lif := len(m.IFs)
+SWITCH:
+	switch {
+	case lif > 0:
+		for cnd, tmpIdx := range m.IFs {
+			if ok, condErr := cond.OK(cnd, params); condErr == nil && ok {
+				idx = tmpIdx
+				break SWITCH
+			}
+		}
+		return nil, false
+	case ll > 1:
+		idx = m.count % ll
+	}
+	ret := m.Body[idx]
 
 	for _, macro := range macros {
 		if bytes.Contains(ret, macro.Macro) {
@@ -472,7 +555,7 @@ func fillVars(m *Mock) []byte {
 		}
 	}
 
-	return ret
+	return ret, true
 }
 
 func randString(n int) string {

@@ -1,8 +1,8 @@
+Content-type: application/json
 COND: (and (eq $$one$$ 1) (eq $$two$$ 2))
 X-header-one: one=1
-Content-type: application/json
 
 {
 	"Description":"Вызов /cond",
-  	"Ok": true,
+  	"Ok": true
 }
