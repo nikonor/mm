@@ -56,4 +56,6 @@ Content-Type: application/json
 
 {
 }
+### rr
+GET {{proto}}{{host}}:{{port}}/rr
 ###
