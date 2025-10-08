@@ -39,6 +39,7 @@ type Mock struct {
 	Headers     map[string]string
 	Cond        string
 	Body        [][]byte
+	IFs         map[string]int
 	FileModTime time.Time
 	count       int
 }
@@ -338,6 +339,23 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	println("----")
 
+	var (
+		b      []byte
+		fillOk bool
+	)
+
+	if len(m.Body) > 0 {
+		b, fillOk = fillVars(m, params)
+		if !fillOk {
+			if err = h.notFound(resp, err); err != nil {
+				fmt.Fprint(os.Stderr, err.Error())
+			}
+
+			return
+		}
+		fmt.Println(lp + "::" + uri + "::body::" + string(bytes.ReplaceAll(b, []byte("\n"), []byte("\\n"))))
+	}
+
 	if m.Headers != nil && len(m.Headers) > 0 {
 		for k, v := range m.Headers {
 			fmt.Println(lp + "::" + uri + "::add header::" + k + "=>" + v)
@@ -348,13 +366,11 @@ func (h *H) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	HeaderHandlerDelay(lp+"::"+uri, m.Headers)
 
 	resp.WriteHeader(m.Code)
-	if m.Body != nil {
-		b := fillVars(m)
+
+	if len(b) > 0 {
 		if _, err = resp.Write(b); err != nil {
 			fmt.Fprint(os.Stderr, err.Error())
 		}
-		b = bytes.ReplaceAll(b, []byte("\n"), []byte("\\n"))
-		fmt.Println(lp + "::" + uri + "::body::" + string(b))
 	}
 
 	m.addCount()
@@ -392,6 +408,7 @@ func makeMock(uri string) (*Mock, error) {
 	ret := Mock{
 		Code: 200,
 		Body: make([][]byte, 0),
+		IFs:  make(map[string]int),
 	}
 
 	for _, u := range getCases(uri) {
@@ -470,6 +487,20 @@ func fill(m *Mock, body []byte) {
 				options = append(options, opt)
 			case strings.EqualFold(ss[0], "cond"):
 				m.Cond = ss[1]
+			case strings.EqualFold(ss[0], "if"):
+				parts := strings.Split(ss[1], "=>")
+				if len(parts) != 2 {
+					fmt.Fprint(os.Stderr, "wrong format of IF")
+					return
+				}
+				fileName = *dirFlag + "/" + strings.TrimSpace(parts[1])
+				opt, errRF := os.ReadFile(fileName)
+				if errRF != nil {
+					fmt.Fprint(os.Stderr, errRF.Error()+"filename="+*dirFlag+"/"+parts[1])
+					return
+				}
+				options = append(options, opt)
+				m.IFs[strings.TrimSpace(parts[0])] = len(options) - 1
 			default:
 				m.Headers[ss[0]] = ss[1]
 			}
@@ -493,10 +524,21 @@ func splitH(s string) []string {
 	return partSplitRE.Split(s, 2)
 }
 
-func fillVars(m *Mock) []byte {
+func fillVars(m *Mock, params map[string]string) ([]byte, bool) {
 	idx := 0
 	ll := len(m.Body)
-	if ll > 1 {
+	lif := len(m.IFs)
+SWITCH:
+	switch {
+	case lif > 0:
+		for cnd, tmpIdx := range m.IFs {
+			if ok, condErr := cond.OK(cnd, params); condErr == nil && ok {
+				idx = tmpIdx
+				break SWITCH
+			}
+		}
+		return nil, false
+	case ll > 1:
 		idx = m.count % ll
 	}
 	ret := m.Body[idx]
@@ -513,7 +555,7 @@ func fillVars(m *Mock) []byte {
 		}
 	}
 
-	return ret
+	return ret, true
 }
 
 func randString(n int) string {

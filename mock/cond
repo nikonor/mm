@@ -4,5 +4,5 @@ X-header-one: one=1
 
 {
 	"Description":"Вызов /cond",
-  	"Ok": true,
+  	"Ok": true
 }

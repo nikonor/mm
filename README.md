@@ -76,6 +76,11 @@ The device is simple: the first lines, before the empty line - headers.
   - variables are taken from the query string
     - **IMPORTENT**: mm works with first parameter only (?one=1&two=2&one=3 => one==1 )
   - mm answers 200-Ok only if COND will be true
+- (2025-10-08) Add IF string in header (example: ./mock/if and ./mock/if_[1,2,22])
+  - FORMAT: `IF: <cond_string> => <fileName>`
+- (2025-10-08) Add OPTION string in header (example: ./mock/rr and ./mock/rr_[1,2,3])
+  - FORMAT `OPTION: <fileName>`
+  - If you list several OPTION type lines, the files specified in them will be output in turn
 
 ### Body
 

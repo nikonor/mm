@@ -1,7 +1,4 @@
-X-header-one: one=1
-Content-type: application/json
-
 {
 	"Description":"Вызов /rr - версия 3",
-  	"Ok": true,
+  	"Ok": true
 }

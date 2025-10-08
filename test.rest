@@ -58,4 +58,12 @@ Content-Type: application/json
 }
 ### rr
 GET {{proto}}{{host}}:{{port}}/rr
+### if#1
+GET {{proto}}{{host}}:{{port}}/if?idx=1
+### if#2
+GET {{proto}}{{host}}:{{port}}/if?idx=2
+### if#3
+GET {{proto}}{{host}}:{{port}}/if?idx=3
+### if#22
+GET {{proto}}{{host}}:{{port}}/if?idx=22
 ###
