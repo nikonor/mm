@@ -65,7 +65,7 @@ var (
 	l                            sync.RWMutex
 	nl                           sync.Mutex
 	macros                       []Macro
-	partSplitRE, sep             *regexp.Regexp
+	partSplitRE, sep, queryVar   *regexp.Regexp
 	tokens                       []string
 	needToken                    bool
 )
@@ -90,6 +90,7 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 
 	partSplitRE = regexp.MustCompile(`:\s*`)
+	queryVar = regexp.MustCompile(`\$\$.+?\$\$`)
 	sep = regexp.MustCompile(`[/?]`)
 
 	macros = append(macros, Macro{
@@ -554,6 +555,12 @@ SWITCH:
 			}
 		}
 	}
+
+	for key, value := range params {
+		ret = bytes.ReplaceAll(ret, []byte("$$"+key+"$$"), []byte(value))
+	}
+
+	ret = queryVar.ReplaceAll(ret, []byte("null"))
 
 	return ret, true
 }

@@ -81,7 +81,7 @@ The device is simple: the first lines, before the empty line - headers.
 - (2025-10-08) Add OPTION string in header (example: ./mock/rr and ./mock/rr_[1,2,3])
   - FORMAT `OPTION: <fileName>`
   - If you list several OPTION type lines, the files specified in them will be output in turn
-
+- (2025-10-08) You can return body with params from query-string (example: ./mock/if and ./mock/if_[1,2,22])
 ### Body
 
 After an empty line - the response body.
