@@ -59,11 +59,11 @@ Content-Type: application/json
 ### rr
 GET {{proto}}{{host}}:{{port}}/rr
 ### if#1
-GET {{proto}}{{host}}:{{port}}/if?idx=1&qwe=1111
+GET {{proto}}{{host}}:{{port}}/if?idx=1&qwe=1111&asd=hello-1
 ### if#2
-GET {{proto}}{{host}}:{{port}}/if?idx=2&qwe=2222
+GET {{proto}}{{host}}:{{port}}/if?idx=2&qwe=2222&asd=hello-2
 ### if#3
-GET {{proto}}{{host}}:{{port}}/if?idx=3&qwe=3333
+GET {{proto}}{{host}}:{{port}}/if?idx=3&qwe=3333&asd=hello-3
 ### if#22
-GET {{proto}}{{host}}:{{port}}/if?idx=22
+GET {{proto}}{{host}}:{{port}}/if?idx=22&asd=hello-22
 ###

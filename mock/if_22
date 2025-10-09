@@ -1,5 +1,6 @@
 {
 	"Description":"Вызов /if - idx == 22",
   	"Ok": true,
-	"qwe_from_params": $$qwe$$
+	"qwe_from_params": $$qwe$$,
+	"asd_from_params": "$$asd$$"
 }
