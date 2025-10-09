@@ -26,20 +26,26 @@ const (
 	CmdAND
 	CmdOR
 	CmdNot
-	
+	CmdEQI
+	CmdCONTAIN
+	CmdICONTAIN
+
 	Open  = '('
 	Close = ')'
 	Quote = '"'
 	T     = "TRUE"
 	F     = "FALSE"
-	
-	EQ  = "eq"
-	NE  = "ne"
-	GT  = "gt"
-	LT  = "lt"
-	GTE = "gte"
-	LTE = "lte"
-	AND = "and"
-	OR  = "or"
-	NOT = "not"
+
+	EQ       = "eq"
+	NE       = "ne"
+	GT       = "gt"
+	LT       = "lt"
+	GTE      = "gte"
+	LTE      = "lte"
+	AND      = "and"
+	OR       = "or"
+	NOT      = "not"
+	EQI      = "eqi"
+	CONTAIN  = "contain"
+	ICONTAIN = "icontain"
 )

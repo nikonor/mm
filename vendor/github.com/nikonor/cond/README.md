@@ -1,57 +1,57 @@
 # cond
 
-Библиотека для создания логических условий
+A library for creating logical conditions
 
-## Основная идея
+## Core Concept
 
-- все условия заключаются в скобки, даже верхнее
-- все условия строятся по правилу: **<команда> <первый элемент> [<второй элемент>]**
-- все элементы - строки, хотя для некоторых команд логика состоит в преобразовании в число
-- если элемент состоит из нескольких слов, то его надо ограничить кавычками
-- если внутри элемента тоже есть кавычки, то их надо экранировать 
+- All conditions are enclosed in parentheses, even the top-level one
+- All conditions are built according to the rule: **<command> <first element> [<second element>]**
+- All elements are strings, although for some commands the logic involves converting to numbers
+- If an element consists of multiple words, it must be enclosed in quotes
+- If there are quotes inside the element itself, they must be escaped
 
+## Public Functions
 
+The library provides one public function:
 
-## Публичные функции
+> OK - function for checking a logical condition
+>     Input parameters:
+>         in - logical string
+>         data - variable dictionary
+>     Output parameters:
+>         bool - condition is met
+>         err - error
 
-Библиотека предоставляет одну публичную функцию
+**IMPORTANT**: Variables in the logical string are specified as **$$variable_name$$**, while in the dictionary they are **variable_name**.
 
->OK - функция проверки логического условия
->    Входящие параметры
->        in -  логическая строка
->        data - словарь переменных
->    Выходные переменные
->        bool - условие выполнено
->        err - ошибка
-
-**ВАЖНО**: переменные в логической строке указываются в виде **$$имя_переменной$$**, а в словаре **имя_переменной**.
-                  
-Примеры:
+Examples:
 ```go
     OK("(and (eq $$msisdn$$ 79876543210)  (gt $$age$$ 22))", 
 		map[string]string{"msisdn": "79876543210", "age": "22"})
 ```
 
-В данном случае OK вернет false. Т.к. телефоны совпадают, а вот age равен, а д.б. больше.
+In this case, OK will return false. Because the phone numbers match, but age is equal to 22, not greater than 22.
 
-## Список команд 
+## Command List
 
-### Строковые команды
-- eq - элементы равны
-- ne - элементы не равны
+### String Commands
+- eq - strings are equal
+- ne - strings are not equal
+- eqi - strings are case-insensitive equal
+- contain - first string contains in second string
+- icontain - first string case-insensitive contains in second string
 
-### Числовые команды 
+### Numeric Commands
 
-Для данных команды мы переводим полученные строки в числа и дальше сравниваем числа
+For these commands, we convert the given strings into numbers and then compare the numbers
 
-- gt - первый элемент больше второго
-- lt - первый элемент меньше второго
-- gte - первый элемент больше или равен второму
-- lte - первый элемент меньше или равен второму
+- gt - first element is greater than the second
+- lt - first element is less than the second
+- gte - first element is greater than or equal to the second
+- lte - first element is less than or equal to the second
 
-### Логические команды
+### Logical Commands
 
-- and - Логическое И
-- or - логическое ИЛИ
-- not - отрицание
-  - эта команда принимаем только 1 элемент 
+- and - Logical AND
+- or - Logical OR
+- not - Negation  - This command accepts only 1 element

@@ -6,12 +6,13 @@ import (
 )
 
 // OK - функция проверки логического условия
-//		Входящие параметры
-//			in -  логическая строка
-//			data - словарь переменных
-//		Выходные переменные
-//			bool - условие выполнено
-//			err - ошибка
+//
+//	Входящие параметры
+//		in -  логическая строка
+//		data - словарь переменных
+//	Выходные переменные
+//		bool - условие выполнено
+//		err - ошибка
 func OK(in string, data map[string]string) (bool, error) {
 
 	in = strings.TrimSpace(in)
@@ -202,6 +203,15 @@ func getIdxCmd(s string) (int, bool) {
 	case NOT:
 		return CmdNot, true
 
+	case EQI:
+		return CmdEQI, true
+
+	case CONTAIN:
+		return CmdCONTAIN, true
+
+	case ICONTAIN:
+		return CmdICONTAIN, true
+
 	default:
 		return 0, false
 	}
@@ -316,6 +326,14 @@ func (c *cond) do() bool {
 		return c.f == T || c.s == T
 	case CmdNot:
 		return !(c.f == T)
+	case CmdEQI:
+		ok := strings.EqualFold(c.f, c.s)
+		_ = ok
+		return strings.EqualFold(c.f, c.s)
+	case CmdCONTAIN:
+		return strings.Contains(c.s, c.f)
+	case CmdICONTAIN:
+		return strings.Contains(strings.ToUpper(c.s), strings.ToUpper(c.f))
 	}
 	return false
 }
